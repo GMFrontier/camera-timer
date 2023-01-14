@@ -12,7 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Camera Timer"
+rootProject.name = "Camera Shots"
 include ':app'
 include ':core'
 include ':camera'

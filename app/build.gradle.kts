@@ -15,7 +15,7 @@ android {
         versionCode = ProjectConfig.versionCode
         versionName = ProjectConfig.versionName
 
-        testInstrumentationRunner = "com.plcoding.calorytracker.HiltTestRunner"
+        testInstrumentationRunner = "com.gmfrontier.cameratimer.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }

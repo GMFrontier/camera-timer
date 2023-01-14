@@ -1,5 +1,5 @@
 object ProjectConfig {
-    const val appId = "com.plcoding.calorytracker"
+    const val appId = "com.gmfrontier.cameratimer"
     const val compileSdk = 33
     const val minSdk = 23
     const val targetSdk = 33

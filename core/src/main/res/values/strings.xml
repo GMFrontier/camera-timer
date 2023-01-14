@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">Camera Timer</string>
+    <string name="app_name">Camera Shots</string>
+    <string name="photo_repository_error">Hubo un error al guardar la foto.</string>
+    <string name="photo_saved">Se ha guardado la foto correctamente!</string>
+    <string name="gallery">Galería</string>
+    <string name="camera_shot">Tomar foto</string>
+    <string name="swtich_camera">Cambiar cámara</string>
+    <string name="settings">Configuración</string>
+    <string name="flash_on">Flash activo</string>
+    <string name="flash_off">Flash inactivo</string>
+    <string name="shot_interval">Intervalo entre fotos</string>
+    <string name="number_shots">Cantidad de tomas</string>
 </resources>
