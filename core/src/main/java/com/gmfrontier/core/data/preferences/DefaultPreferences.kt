@@ -1,6 +1,7 @@
 package com.gmfrontier.core.data.preferences
 
 import android.content.SharedPreferences
+import com.gmfrontier.core.R
 import com.gmfrontier.core.domain.model.UserSettings
 import com.gmfrontier.core.domain.model.CameraMode
 import com.gmfrontier.core.domain.preferences.Preferences
@@ -13,7 +14,7 @@ class DefaultPreferences(
     }
 
     override fun saveCameraMode(cameraMode: CameraMode) {
-        sharedPref.edit().putString(Preferences.KEY_CAMERA_MODE, cameraMode.name).apply()
+        sharedPref.edit().putInt(Preferences.KEY_CAMERA_MODE, cameraMode.nameRes).apply()
     }
 
     override fun saveNumberOfShots(numberOfShots: Int) {
@@ -29,14 +30,14 @@ class DefaultPreferences(
     }
 
     override fun loadUserSettings(): UserSettings {
-        val flashMode = sharedPref.getInt(Preferences.KEY_FLASH_MODE, -1)
-        val cameraMode = sharedPref.getString(Preferences.KEY_CAMERA_MODE, null)
+        val flashMode = sharedPref.getInt(Preferences.KEY_FLASH_MODE, 2)
+        val cameraMode = sharedPref.getInt(Preferences.KEY_CAMERA_MODE, R.string.back_camera)
         val numberOfShots = sharedPref.getInt(Preferences.KEY_NUMBER_OF_SHOTS, 1)
         val shotsInterval = sharedPref.getInt(Preferences.KEY_SHOTS_INTERVAL, 1)
         val initialDelay = sharedPref.getInt(Preferences.KEY_INITIAL_DELAY, 1)
         return UserSettings(
             flashMode = flashMode,
-            cameraMode = CameraMode.fromString(cameraMode ?: "back"),
+            cameraMode = CameraMode.fromInt(cameraMode),
             numberOfShots = numberOfShots,
             shotsInterval = shotsInterval,
             initialDelay = initialDelay

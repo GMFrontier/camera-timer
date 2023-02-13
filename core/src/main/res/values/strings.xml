@@ -9,5 +9,17 @@
     <string name="flash_on">Flash activo</string>
     <string name="flash_off">Flash inactivo</string>
     <string name="shot_interval">Intervalo entre fotos</string>
+    <string name="initial_delay">Delay inicial</string>
     <string name="number_shots">Cantidad de tomas</string>
+    <string name="camera">Cámara</string>
+    <string name="camera_mode">Modo de cámara</string>
+    <string name="flash_mode">Modo de flash</string>
+    <string name="about">Acerca de…</string>
+    <string name="privacy_policy">Política de privacidad</string>
+    <string name="back_camera">Cámara trasera</string>
+    <string name="front_camera">Cámara delantera</string>
+    <string name="save_changes">Guardar cambios</string>
+    <string name="shots_interval_value">%1$d s</string>
+    <string name="initial_delay_value">%1$d s</string>
+    <string name="current_photo_session">%1$d/%2$d</string>
 </resources>

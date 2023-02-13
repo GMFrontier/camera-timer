@@ -1,13 +1,16 @@
 package com.gmfrontier.camera_presentation.camera.components
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
-import androidx.camera.core.*
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
 import androidx.camera.core.ImageCapture.FLASH_MODE_ON
+import androidx.camera.core.Preview
+import androidx.camera.core.UseCase
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -19,56 +22,95 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.gmfrontier.camera_presentation.R
 import com.gmfrontier.camera_presentation.camera.CameraEvent
 import com.gmfrontier.camera_presentation.camera.CameraViewModel
 import com.gmfrontier.camera_presentation.camera.extensions.executor
 import com.gmfrontier.camera_presentation.camera.extensions.getCameraProvider
 import com.gmfrontier.camera_presentation.camera.extensions.takePicture
 import com.gmfrontier.camera_presentation.camera.util.Permission
-import com.gmfrontier.core_ui.LocalSpacing
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.io.File
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraCapture(
     modifier: Modifier = Modifier,
-    viewModel: CameraViewModel = hiltViewModel()
+    viewModel: CameraViewModel = hiltViewModel(),
+    navigateToSettings: () -> Unit,
+    navigateToGallery: () -> Unit,
 ) {
     val context = LocalContext.current
-    val spacing = LocalSpacing.current
-    val state = viewModel.state
-
     Permission(
         permission = Manifest.permission.CAMERA,
-        rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
+        rationale = stringResource(R.string.camera_permission_rationale),
         permissionNotAvailableContent = {
             Column(modifier) {
-                Text("O noes! No Camera!")
+                Text(stringResource(R.string.camera_not_found))
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = {
                     context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", context.packageName, null)
                     })
                 }) {
-                    Text("Open Settings")
+                    Text(stringResource(R.string.open_settings))
                 }
             }
         }
     ) {
         Box(modifier = modifier) {
-            val lifecycleOwner = LocalLifecycleOwner.current
+            val state = viewModel.state
             val coroutineScope = rememberCoroutineScope()
             var previewUseCase by remember { mutableStateOf<UseCase>(Preview.Builder().build()) }
             val imageCaptureUseCase by remember {
                 mutableStateOf(
                     ImageCapture.Builder()
                         .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY)
-                        .setFlashMode(state.flashMode)
                         .build()
                 )
+            }
+            val lifecycleOwner = LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    when (event) {
+                        Lifecycle.Event.ON_RESUME ->
+                            viewModel.onEvent(CameraEvent.OnResume)
+                        else -> Unit
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+            }
+            var number by remember {
+                mutableStateOf(0)
+            }
+            LaunchedEffect(true) {
+                viewModel.cameraEvent.collect { event ->
+                    when (event) {
+                        is CameraEvent.TakePicture -> {
+                            takePicture(
+                                coroutineScope = coroutineScope,
+                                imageCaptureUseCase = imageCaptureUseCase,
+                                context = context,
+                                flashMode = viewModel.state.flashMode,
+                                onTakePicture = { file ->
+                                    viewModel.onEvent(CameraEvent.OnPictureTaken(file))
+                                }
+                            )
+                        }
+                        is CameraEvent.ShowCounter -> {
+                            number = event.number
+                        }
+                        else -> Unit
+                    }
+                }
             }
             Box {
                 CameraPreview(
@@ -77,10 +119,16 @@ fun CameraCapture(
                         previewUseCase = it
                     }
                 )
+                NumberFade(
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    number = viewModel.showNumber.collectAsState(0).value,
+                    fontSize = 52.sp,
+                    visible = viewModel.numberIsVisible.collectAsState(false).value
+                )
             }
             TopBar(
                 modifier = Modifier
-                    .height(55.dp)
                     .alpha(.65f)
                     .background(
                         color = MaterialTheme.colors.background
@@ -88,8 +136,14 @@ fun CameraCapture(
                     .align(Alignment.TopCenter)
                     .padding(horizontal = 20.dp),
                 flashActive = state.flashMode == FLASH_MODE_ON,
-                onFlashClick = { viewModel.onEvent(CameraEvent.SwitchFlash) },
-                onSettingsClick = { viewModel.onEvent(CameraEvent.NavigateToSettings) }
+                numberOfShots = state.numberOfShots,
+                shotsInterval = state.shotsInterval,
+                initialDelay = state.initialDelay,
+                onFlashClick = { viewModel.onEvent(CameraEvent.OnFlashSwitch(it)) },
+                onSettingsClick = {
+                    viewModel.onEvent(CameraEvent.OnStopPhotoSession)
+                    navigateToSettings()
+                }
             )
             BottomBar(
                 modifier = Modifier
@@ -100,19 +154,16 @@ fun CameraCapture(
                     )
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 20.dp),
-                onGallery = {
-                    viewModel.onEvent(CameraEvent.NavigateToGallery)
-                },
-                onCameraShot = {
-                    coroutineScope.launch {
-                        imageCaptureUseCase.takePicture(context.executor, state.flashMode).let {
-                            viewModel.onEvent(CameraEvent.TakePhoto)
-                            viewModel.onEvent(CameraEvent.SavePhoto(it))
-                        }
-                    }
+                onGallery = navigateToGallery,
+                onStartCameraShot = {
+                    viewModel.onEvent(CameraEvent.OnStartPhotoSession)
                 },
                 onSwitchCamera = {
-                    viewModel.onEvent(CameraEvent.SwitchCamera)
+                    viewModel.onEvent(CameraEvent.OnSwitchCamera)
+                },
+                isPhotoSessionActive = state.isPhotoSessionActive,
+                onStopCameraShot = {
+                    viewModel.onEvent(CameraEvent.OnStopPhotoSession)
                 }
             )
             LaunchedEffect(previewUseCase, state.cameraMode) {
@@ -125,6 +176,22 @@ fun CameraCapture(
                 } catch (ex: Exception) {
                     Log.e("CameraCapture", "Failed to bind camera use cases", ex)
                 }
+            }
+        }
+    }
+}
+
+private fun takePicture(
+    coroutineScope: CoroutineScope,
+    imageCaptureUseCase: ImageCapture,
+    context: Context,
+    flashMode: Int,
+    onTakePicture: (File) -> Unit
+) {
+    coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            imageCaptureUseCase.takePicture(context.executor, flashMode).let {
+                onTakePicture(it)
             }
         }
     }

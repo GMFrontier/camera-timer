@@ -9,6 +9,8 @@ data class CameraState(
     val cameraMode: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
     val flashMode: Int = ImageCapture.FLASH_MODE_OFF,
     val numberOfShots: Int = 1,
-    val delayInSec: Int = 0,
-    val intervalInSec: Int = 1
+    val initialDelay: Int = 0,
+    val shotsInterval: Int = 1,
+    val isTimerShown: Boolean = false,
+    val isPhotoSessionActive: Boolean = false
 )

@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import com.gmfrontier.core.domain.preferences.Preferences
 import com.gmfrontier.core.domain.use_case.PlayCameraSound
 import com.gmfrontier.core.data.preferences.DefaultPreferences
+import com.gmfrontier.core.domain.use_case.FilterOutDigits
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,7 +32,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providesPlayCameraSoundUseCase(context: Application) : PlayCameraSound {
+    fun providePlayCameraSoundUseCase(context: Application) : PlayCameraSound {
         return PlayCameraSound(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFilterOutDigits() : FilterOutDigits {
+        return FilterOutDigits()
     }
 }

@@ -58,7 +58,10 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(Route.SETTINGS) {
-                            SettingsScreen()
+                            SettingsScreen(
+                                scaffoldState = scaffoldState,
+                                navigateUp = navController::navigateUp
+                            )
                         }
                     }
                 }

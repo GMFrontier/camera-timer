@@ -13,8 +13,10 @@ import com.gmfrontier.core_ui.LocalSpacing
 fun BottomBar(
     modifier: Modifier = Modifier,
     onGallery: () -> Unit,
-    onCameraShot: () -> Unit,
+    onStartCameraShot: () -> Unit,
     onSwitchCamera: () -> Unit,
+    isPhotoSessionActive: Boolean,
+    onStopCameraShot: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
     Row(
@@ -29,9 +31,12 @@ fun BottomBar(
             contentDescription = UiText.StringResource(com.gmfrontier.core.R.string.gallery)
         )
         CircleButton(
-            iconRes = R.drawable.ic_camera_shot,
+            iconRes = if (isPhotoSessionActive)
+                R.drawable.ic_stop
+            else
+                R.drawable.ic_camera_shot,
             size = 80.dp,
-            onClick = onCameraShot,
+            onClick = if (isPhotoSessionActive) onStopCameraShot else onStartCameraShot,
             contentDescription = UiText.StringResource(com.gmfrontier.core.R.string.camera_shot)
         )
         CircleButton(
