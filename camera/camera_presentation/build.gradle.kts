@@ -15,4 +15,5 @@ dependencies {
     "implementation"(Permissions.permission)
 
     "implementation"(Coil.coilCompose)
+    "implementation"(kotlin("reflect"))
 }

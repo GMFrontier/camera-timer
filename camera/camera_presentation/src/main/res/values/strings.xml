@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="camera_permission_rationale">La cámara es escencial para que funcione esta aplicación. Por favor conceda los permisos</string>
+    <string name="permission_request">Solicitud de permiso</string>
+    <string name="accept">Aceptar</string>
+    <string name="camera_not_found">Su dispositivo no cuenta con cámara!</string>
+    <string name="open_settings">Ir a configuración</string>
+</resources>

@@ -5,7 +5,7 @@ import java.io.File
 
 interface PhotoRepository {
 
-    fun savePhoto(photo: File): Result<Uri>
+    suspend fun savePhoto(photo: File): Result<Uri>
 
     companion object {
         const val APP_PHOTO_DIRECTORY = "Camera Shots"

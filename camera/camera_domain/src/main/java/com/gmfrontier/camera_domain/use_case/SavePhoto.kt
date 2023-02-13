@@ -7,7 +7,7 @@ class SavePhoto(
     private val repository: PhotoRepository
 ) {
 
-    operator fun invoke(photo: File) {
+    suspend operator fun invoke(photo: File) {
         repository.savePhoto(photo)
     }
 }

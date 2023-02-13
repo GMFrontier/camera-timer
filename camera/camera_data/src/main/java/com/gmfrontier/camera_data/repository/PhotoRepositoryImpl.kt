@@ -12,6 +12,8 @@ import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import com.gmfrontier.camera_domain.repository.PhotoRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -21,10 +23,10 @@ class PhotoRepositoryImpl(
     @ApplicationContext private val context: Context
 ) : PhotoRepository {
 
-    override fun savePhoto(photo: File): Result<Uri> {
+    override suspend fun savePhoto(photo: File): Result<Uri> = withContext(Dispatchers.IO) {
         val filePath: String = photo.path
         val bitmap = BitmapFactory.decodeFile(filePath)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             saveImageInQ(bitmap)
         else
             saveImageInLegacy(bitmap)
